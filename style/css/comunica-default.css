@@ -1,0 +1,189 @@
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,600);
+.comunica
+{
+	font-family: 'Open Sans', sans-serif;
+	display:block;
+	background:#f5f5f5;
+	padding:8px;
+	box-shadow: 0 0 6px rgba(0,0,0,0.3);
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	position: relative;
+}
+.comunica #comunica-chat-pane
+{
+	background-color:#fff;
+	box-shadow: 2px 2px 2px rgba(0,0,0,0.075) inset;
+	border: 1px solid rgba(0,0,0,0.1);
+}
+.comunica .comunica-opaque-popup
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	background-color: rgba(0,0,0,0.65);
+	display: none;
+}
+.comunica .comunica-opaque-popup .comunica-pick-nick
+{
+	display:block;
+	position:relative;
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+	background: #fff;
+	border-radius: 4px;
+	box-shadow: 0 0 4px rgba(255,255,255,0.3);
+	border: 1px solid #e0e0e0;
+	margin-top: 45%;
+}
+.comunica .comunica-opaque-popup .comunica-pick-nick h3
+{
+	margin: 4px;
+}
+.comunica .comunica-opaque-popup .comunica-pick-nick input[type="text"]
+{
+	resize:none;
+	border: 1px solid #cccccc;
+	border-radius: 4px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	-webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+			transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+	margin-bottom: 8px;
+}
+.comunica .comunica-opaque-popup .comunica-pick-nick input[type="text"]:focus
+{
+	border-color: #66afe9;
+	outline: 0;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
+.comunica .comunica-opaque-popup .comunica-pick-nick button
+{
+	background-color: #fff;
+	border: 1px solid #e0e0e0;
+	padding: 9px 12px;
+	margin: 6px;
+	background: -webkit-gradient(linear, left top, left bottom, from(#f0f0f0), to(#e0e0e0));
+	background: -webkit-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -moz-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -ms-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -o-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background-image: -ms-linear-gradient(top, #f0f0f0 0%, #e0e0e0 100%);
+	box-shadow: 0 0 4px rgba(0,0,0,0.2);
+	outline: none;
+}
+.comunica .comunica-drop-menu
+{
+	display:none;
+	width:240px;
+	height:340px;
+	background:rgba(0,0,0,0.9);
+	position:absolute;
+	box-shadow: 0 0 6px #fff inset;
+}
+.comunica .comunica-drop-menu .loading
+{
+	background: url('../imgs/loading.gif') no-repeat center;
+	width: 100%;
+	height: 100%;
+}
+.comunica .comunica-controls
+{
+	display:block;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:8px;
+}
+.comunica .comunica-controls .comunica-msg-input
+{
+	resize:none;
+	border: 1px solid #cccccc;
+	border-radius: 4px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	-webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+			transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+.comunica .comunica-controls .comunica-msg-input:focus
+{
+	border-color: #66afe9;
+	outline: 0;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
+.comunica .comunica-controls .comunica-send-btn
+{
+	border: 1px solid #0a3c59;
+	background: #3e779d;
+	background: -webkit-gradient(linear, left top, left bottom, from(#65a9d7), to(#3e779d));
+	background: -webkit-linear-gradient(top, #65a9d7, #3e779d);
+	background: -moz-linear-gradient(top, #65a9d7, #3e779d);
+	background: -ms-linear-gradient(top, #65a9d7, #3e779d);
+	background: -o-linear-gradient(top, #65a9d7, #3e779d);
+	background-image: -ms-linear-gradient(top, #65a9d7 0%, #3e779d 100%);
+	padding: 9px 18px;
+	-webkit-border-radius: 0px;
+	-moz-border-radius: 0px;
+	border-radius: 0px;
+	-webkit-box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+	-moz-box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+	box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+	text-shadow: #7ea4bd 0 1px 0;
+	color: #06426c;
+	font-size: 14px;
+	font-family: helvetica, serif;
+	text-decoration: none;
+	text-align: center;
+	display:inline-block;
+	margin: 6px;
+	margin-left:0;
+	width:40%;
+}
+.comunica .comunica-controls .comunica-send-btn:hover
+ {
+	border: 1px solid #0a3c59;
+	text-shadow: #1e4158 0 1px 0;
+	background: #3e779d;
+	background: -webkit-gradient(linear, left top, left bottom, from(#65a9d7), to(#3e779d));
+	background: -webkit-linear-gradient(top, #65a9d7, #3e779d);
+	background: -moz-linear-gradient(top, #65a9d7, #3e779d);
+	background: -ms-linear-gradient(top, #65a9d7, #3e779d);
+	background: -o-linear-gradient(top, #65a9d7, #3e779d);
+	background-image: -ms-linear-gradient(top, #65a9d7 0%, #3e779d 100%);
+	color: #fff;
+}
+.comunica .comunica-controls .comunica-send-btn:active 
+{
+	text-shadow: #1e4158 0 1px 0;
+	border: 1px solid #0a3c59;
+	background: #65a9d7;
+	background: -webkit-gradient(linear, left top, left bottom, from(#3e779d), to(#3e779d));
+	background: -webkit-linear-gradient(top, #3e779d, #65a9d7);
+	background: -moz-linear-gradient(top, #3e779d, #65a9d7);
+	background: -ms-linear-gradient(top, #3e779d, #65a9d7);
+	background: -o-linear-gradient(top, #3e779d, #65a9d7);
+	background-image: -ms-linear-gradient(top, #3e779d 0%, #65a9d7 100%);
+	color: #fff;
+}
+.comunica .comunica-controls .comunica-control-button
+{
+	background-color: #fff;
+	border: 1px solid #e0e0e0;
+	padding: 9px 12px;
+	margin: 6px;
+	margin-left: 16px;
+	margin-right:0;
+	background: -webkit-gradient(linear, left top, left bottom, from(#f0f0f0), to(#e0e0e0));
+	background: -webkit-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -moz-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -ms-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -o-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background-image: -ms-linear-gradient(top, #f0f0f0 0%, #e0e0e0 100%);
+	box-shadow: 0 0 4px rgba(0,0,0,0.2);
+	float:right;
+	outline: none;
+}

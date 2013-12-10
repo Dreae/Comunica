@@ -1,5 +1,6 @@
 import socket, hashlib, base64, json
-
+from asyncore import _DISCONNECTED
+from errno import EWOULDBLOCK
 
 class ChatClient(object):
 	def __init__(self, socket, addr):
@@ -7,13 +8,15 @@ class ChatClient(object):
 		self._addr = addr
 		self.name = None
 		self.name_color = '#000'
+		self.buffer = ''
 	
 	def handle(self):
 		try:
 			self.data = self._sock.recv(1024).strip()
-		except:
-			self._sock.close()
-			self.room.clients.remove(self)
+		except socket.error, why:
+			if why.args[0] in _DISCONNECTED:
+				self._sock.close()
+				self.room.clients.remove(self)
 		if not self.data: 
 			self._sock.close()
 			self.room.clients.remove(self)
@@ -51,16 +54,43 @@ class ChatClient(object):
 		response += 'Upgrade: websocket\r\n'
 		response += 'Connection: Upgrade\r\n'
 		response += 'Sec-WebSocket-Accept: {}\r\n\r\n'.format(self.accept)
-		self._sock.send(response.encode('utf-8'))
+		try:
+			self._sock.send(response.encode('utf-8'))
+		except socket.error, why:
+			if why.args[0] in _DISCONNECTED:
+				client._sock.close()
+			return False
 		return True
 		
 	def send(self, payload):
 		response = chr(0x81)+chr(len(payload))+payload
 		try:
-			client._sock.send(response)
-		except:
-			client._sock.close()
-			self.clients.remove(client)
-		
+			self._sock.send(response)
+		except socket.error, why:
+			if why.args[0] == EWOULDBLOCK:
+				self.buffer += "\n" + response
+				return
+			elif why.args[0] in _DISCONNECTED:
+				client._sock.close()
+				self.room.clients.remove(client)
+	
+	def waiting_to_write(self):
+		if self.buffer:
+			return True
+		return False
+	
+	def write(self):
+		lines = self.buffer.split('\n')
+		try:
+			self._sock.send(lines[0])
+		except socket.error, why:
+			if why.args[0] == EWOULDBLOCK:
+				return
+			elif why.args[0] in _DISCONNECTED:
+				client._sock.close()
+				self.room.clients.remove(client)
+				return
+		self.buffer = lines[1:]
+	
 	def fileno(self):
 		return self._sock.fileno()

@@ -16,7 +16,11 @@ class ChatServer(object):
 		while not self._shutdown_req:
 			r, w, e = select.select([self._socket], [], [], 0.5)
 			if self._socket in r:
-				conn, addr = self._socket.accept()
+				try:
+					conn, addr = self._socket.accept()
+				except:
+					continue
+				
 				client = ChatClient(conn, addr)
 				if client.handshake():
 					room = self.get_room(client.room)
@@ -47,10 +51,14 @@ class Room(object):
 		while not self._shutdown_req:
 			while not self.clients:
 				time.sleep(1)
-			r, w, e = select.select(self.clients, [], [], 0.5)
+			r, w, e = select.select(self.clients, self.clients, [], 0.5)
 			if r:
 				for client in r:
 					client.handle()
+			if w:
+				for client in w:
+					if client.waiting_to_write():
+						client.write()
 			
 	def sendToRoom(self, client, msg):
 		if not client.name:
@@ -60,14 +68,8 @@ class Room(object):
 		self._broadcast(payload)
 		
 	def _broadcast(self, payload):
-		response = chr(0x81)+chr(len(payload))+payload
-		r, w, e = select.select([], self.clients, [], 0.05)
-		for client in w:
-			try:
-				client._sock.send(response)
-			except:
-				client._sock.close()
-				self.clients.remove(client)
+		for client in self.clients:
+			client.send(payload)
 	
 	def set_nick(self, client, nick):
 		while nick in [c.name for c in self.clients if c != client]:

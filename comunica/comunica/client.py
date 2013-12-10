@@ -21,18 +21,14 @@ class ChatClient(object):
 			self._sock.close()
 			self.room.clients.remove(self)
 			return
-		payload_type = ord(self.data[0])
-		payload_len = ord(self.data[1])
 		mask = self.data[2:6]
 		payload = self.data[6:]
 		frame = ''.join(unichr(ord(a) ^ ord(mask[i % 4])) for i, a in enumerate(payload))
-		print frame
 		try:
 			event = json.loads(frame.decode('utf-8'))
 		except:
 			return
 		if event['evt'] == 'message':
-			print event['value']
 			self.room.sendToRoom(self, event['value'])
 		elif event['evt'] == 'set-nick':
 			self.room.set_nick(self, event['value'][0:24])
@@ -58,7 +54,7 @@ class ChatClient(object):
 			self._sock.send(response.encode('utf-8'))
 		except socket.error, why:
 			if why.args[0] in _DISCONNECTED:
-				client._sock.close()
+				self.kill()
 			return False
 		return True
 		
@@ -71,8 +67,7 @@ class ChatClient(object):
 				self.buffer += "\n" + response
 				return
 			elif why.args[0] in _DISCONNECTED:
-				client._sock.close()
-				self.room.clients.remove(client)
+				self.kill()
 	
 	def waiting_to_write(self):
 		if self.buffer:
@@ -87,10 +82,17 @@ class ChatClient(object):
 			if why.args[0] == EWOULDBLOCK:
 				return
 			elif why.args[0] in _DISCONNECTED:
-				client._sock.close()
-				self.room.clients.remove(client)
+				self.kill()
 				return
 		self.buffer = lines[1:]
 	
 	def fileno(self):
 		return self._sock.fileno()
+		
+	def kill(self):
+		self._sock.shutdown()
+		self._sock.close()
+		try:
+			self.room.clients.remove(self)
+		except:
+			return

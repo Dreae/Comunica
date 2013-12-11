@@ -21,7 +21,7 @@ class ChatServer(object):
 					conn, addr = self._socket.accept()
 				except:
 					continue
-				
+				conn.setblocking(0)	
 				client = ChatClient(conn, addr)
 				if client.handshake():
 					room = self.get_room(client.room)
@@ -29,7 +29,6 @@ class ChatServer(object):
 						room.clients.append(client)
 						client.room = room
 					else:
-						client._sock.shutdown()
 						client._sock.close()
 						
 	def get_room(self, room):
@@ -73,7 +72,7 @@ class Room(object):
 		
 	def _broadcast(self, payload):
 		for client in self.clients:
-			client.send(payload)
+			client.send(payload, 0x81)
 	
 	def set_nick(self, client, nick):
 		while nick in [c.name for c in self.clients if c != client]:

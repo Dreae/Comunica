@@ -21,16 +21,30 @@ class ChatClient(object):
 		data = self.read()
 		if not data: 
 			return
+		opcode = ord(data[0])
+		masked = ord(data[1]) & 128 == 128
 		length = ord(data[1]) ^ 128
+		
 		if length == 126:
 			offset = 4
 		elif length == 127:
 			offset = 6
 		else:
-			offset = 2			
-		mask = data[offset:offset+4]
-		payload = data[offset+4:]
-		frame = ''.join(unichr(ord(a) ^ ord(mask[i % 4])) for i, a in enumerate(payload))
+			offset = 2
+		
+		if masked:
+			mask = data[offset:offset+4]
+		payload = data[offset+4 if masked else 0:]
+		
+		if masked:
+			frame = ''.join(unichr(ord(a) ^ ord(mask[i % 4])) for i, a in enumerate(payload))
+		else:
+			frame = payload
+	
+		if opcode == 0x89:
+			self.send(frame, 0x8A)
+			return
+		
 		try:
 			event = json.loads(frame.decode('utf-8'))
 		except:
@@ -40,7 +54,7 @@ class ChatClient(object):
 		elif event['evt'] == 'set-nick':
 			self.room.set_nick(self, event['value'][:24].strip())
 		elif event['evt'] == 'get-viewers':
-			self.send(json.dumps({'evt': 'viewers', 'value': [client.name for client in self.room.clients]}).encode('utf-8'))
+			self.send(json.dumps({'evt': 'viewers', 'value': [client.name for client in self.room.clients]}).encode('utf-8'), 0x81)
 		elif event['evt'] == 'set-color':
 			self.set_color(event['value'])
 			
@@ -69,15 +83,15 @@ class ChatClient(object):
 				self.kill()
 			return False
 		return True
-		
-	def send(self, payload):
+	
+	def send(self, payload, opcode):
 		length = len(payload)
 		if length <= 125:
-			response = [0x81, len(payload)] + map(ord, payload)
+			response = [opcode, len(payload)] + map(ord, payload)
 		elif length <= 65535:
-			response = [0x81, 126] + [len(payload) >> i & 0xff for i in [8,0]] + map(ord, payload)
+			response = [opcode, 126] + [len(payload) >> i & 0xff for i in [8,0]] + map(ord, payload)
 		else:
-			response = [0x81, 127] + [len(payload) >> i & 0xff for i in [24,16,8,0]] + map(ord, payload)
+			response = [opcode, 127] + [len(payload) >> i & 0xff for i in [24,16,8,0]] + map(ord, payload)
 	
 		try:
 			self._sock.send(bytearray(response))

@@ -127,8 +127,12 @@ $(function(){
 			ws.onopen = this.connected;
 			ws.onmessage = this.recvmsg;
 			ws.onclose = this.connection_closed;
+			ws.onerror = this.websock_error;
 			this.ws = ws;
 		}
+	}
+	$.fn.comunica.websock_error = function(error){
+		console.log(error.error);
 	}
 	$.fn.comunica.send = function(msg){
 		try {

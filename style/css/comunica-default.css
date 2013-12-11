@@ -76,8 +76,18 @@
 	box-shadow: 0 0 4px rgba(0,0,0,0.2);
 	outline: none;
 }
+.comunica .comunica-opaque-popup .comunica-not-connected
+{
+	color: #fff;
+	text-align: center;
+	width: 50%;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 15%;
+}
 .comunica .comunica-drop-menu
 {
+	color: #fff;
 	display:none;
 	width:240px;
 	height:340px;
@@ -85,9 +95,8 @@
 	position:absolute;
 	box-shadow: 0 0 6px #fff inset;
 }
-.comunica .comunica-drop-menu h2
+.comunica .comunica-drop-menu h1, h2, h3, h4
 {
-	color: #fff;
 	margin: 6px;
 	margin-left: 12px;
 }
@@ -110,6 +119,20 @@
 .comunica .comunica-drop-menu .comunica-viewer-list .comunica-viewer
 {
 	color: #fff;
+}
+.comunica .comunica-drop-menu .colors
+{
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+}
+.comunica .comunica-drop-menu .colors .color
+{
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	margin: 4px;
 }
 .comunica .comunica-controls
 {

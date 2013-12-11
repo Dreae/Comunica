@@ -123,7 +123,7 @@ $(function(){
 		if('WebSocket' in window)
 		{
 			var ws_con = "ws://"+host+"/"+room;
-			var ws = new WebSocket(ws_con);
+			var ws = new WebSocket(ws_con, 'comunica');
 			ws.onopen = this.connected;
 			ws.onmessage = this.recvmsg;
 			ws.onclose = this.connection_closed;
@@ -149,6 +149,9 @@ $(function(){
 			$('#comunica-chat-pane').append('<p style="margin:0;"><span style="color:'+ json.from[1].htmlEncode()
 									+ ';font-weight:600">' + json.from[0].htmlEncode() + '</span>: ' + json.value.htmlEncode() + '</p>');
 			$('#comunica-chat-pane').animate({scrollTop: $('#comunica-chat-pane')[0].scrollHeight}, 300);
+			if($('#comunica-chat-pane > p').length > 150){
+				$('#comunica-chat-pane p:first-child').remove();
+			}
 		}
 		else if(json.evt == "viewers"){
 			var viewerList = $('<div class="comunica-viewer-list" id="comunica-viewers-list"></div>');

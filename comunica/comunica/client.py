@@ -60,6 +60,7 @@ class ChatClient(object):
 		response = 'HTTP/1.1 101 WebSocket Protocol Handshake\r\n'
 		response += 'Upgrade: websocket\r\n'
 		response += 'Connection: Upgrade\r\n'
+		response += 'Sec-WebSocket-Protocol: comunica\r\n'
 		response += 'Sec-WebSocket-Accept: {}\r\n\r\n'.format(self.accept)
 		try:
 			self._sock.send(response.encode('utf-8'))

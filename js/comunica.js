@@ -42,7 +42,10 @@ $(function(){
 				.append($('<button class="comunica-control-button" id="comunica-settings"><span class="glyphicon glyphicon-cog"></span></button>'))
 			)
 			.append($('<div class="comunica-drop-menu" id="comunica-settings-drop"><div class="loading"></div></div>'))
-			.append($('<div class="comunica-drop-menu" id="comunica-viewers-drop"><div class="loading"></div></div>'))
+			.append($('<div class="comunica-drop-menu" id="comunica-viewers-drop"></div>')
+				.append($('<h2>Viewers</h2>'))
+				.append($('<div class="loading" id="comunica-viewers-list"></div>'))
+			)
 			.append($('<div class="comunica-opaque-popup" id="comunica-pick-nickname-popup"></div>')
 				.append($('<div class="comunica-pick-nick"></div>')
 					.append($('<center></center>')
@@ -59,6 +62,12 @@ $(function(){
 		$('#comunica-settings').click($.fn.comunica.settingsClick);
 		$('#comunica-viewers').click($.fn.comunica.viewersClick);
 		$('#comunica-save-nick').click($.fn.comunica.saveNickClick);
+		$('#comunica-pick-nickname-input').keydown(function(event){
+			if(event.which == 13){
+				event.preventDefault();
+				$('#comunica-save-nick').click();
+			}
+		});
 		this.comunica.nick = false;
 	}
 	$.fn.comunica.connect = function(host, room){
@@ -77,7 +86,14 @@ $(function(){
 		}
 	}
 	$.fn.comunica.send = function(msg){
-		this.ws.send(msg);
+		try 
+		{
+			this.ws.send(msg);
+		} 
+		catch(ex)
+		{
+			return false;
+		}
 	}
 	$.fn.comunica.recvmsg = function(event){
 		try{
@@ -86,10 +102,20 @@ $(function(){
 			console.log("Error parsing frame data: " + event.data);
 			return;
 		}
+		console.log(json);
 		if(json.evt == "message"){
 			$('#comunica-chat-pane').append('<p style="margin:0;"><span style="color:'+ json.from[1].htmlEncode()
 									+ '">' + json.from[0].htmlEncode() + '</span>: ' + json.value.htmlEncode() + '</p>');
 			$('#comunica-chat-pane').animate({scrollTop: $('#comunica-chat-pane')[0].scrollHeight}, 300);
+		}
+		else if(json.evt == "viewers"){
+			var viewerList = $('<div class="comunica-viewer-list" id="comunica-viewers-list"></div>');
+			json.value.forEach(function(name){
+				if(name != null){
+					viewerList.append('<p class="comunica-viewer">' + name + '</p>');
+				}
+			});
+			$('#comunica-viewers-drop > #comunica-viewers-list').replaceWith(viewerList)
 		}
 	}
 	$.fn.comunica.inputKeyDown = function(event){
@@ -102,6 +128,7 @@ $(function(){
 		if(!$(this).comunica.nick){
 			event.preventDefault();
 			$('#comunica-pick-nickname-popup').show();
+			$('#comunica-pick-nickname-input').focus();
 			return;
 		}
 	}
@@ -132,7 +159,7 @@ $(function(){
 		var btnoff = $('#comunica-viewers').offset();
 		$('#comunica-settings-drop').hide();
 		$('#comunica-viewers-drop').fadeToggle().offset({top: btnoff.top-340, left: btnoff.left-100});
-		$(this).comunica.ws.send(JSON.stringify({'evt': 'get-viewers'}));
+		$(this).comunica.send(JSON.stringify({'evt': 'get-viewers'}));
 	}
 	$.fn.comunica.saveNickClick = function(){
 		var nick = $('#comunica-pick-nickname-input').val();
@@ -140,7 +167,7 @@ $(function(){
 			alert("Nickname can not be empty");
 			return;
 		}
-		$(this).comunica.ws.send(JSON.stringify({evt: 'set-nick', value: nick}));
+		$(this).comunica.send(JSON.stringify({evt: 'set-nick', value: nick}));
 		$(this).comunica.nick = nick;
 		$('#comunica-pick-nickname-popup').hide();
 	}

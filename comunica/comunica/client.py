@@ -1,4 +1,4 @@
-import socket, hashlib, base64, json
+import socket, hashlib, base64, json, re
 from asyncore import _DISCONNECTED
 from errno import EWOULDBLOCK
 
@@ -10,33 +10,44 @@ class ChatClient(object):
 		self.name_color = '#000'
 		self.buffer = ''
 	
+	def set_color(self, color):
+		if not '#' in color and not len(color) in [4, 9]:
+			return False
+		if re.findall(r'[^0-9a-fA-F#]', color):
+			return False
+		self.name_color = color
+		
 	def handle(self):
-		try:
-			self.data = self._sock.recv(1024).strip()
-		except socket.error, why:
-			if why.args[0] in _DISCONNECTED:
-				self._sock.close()
-				self.room.clients.remove(self)
-		if not self.data: 
-			self._sock.close()
-			self.room.clients.remove(self)
+		data = self.read()
+		if not data: 
 			return
-		mask = self.data[2:6]
-		payload = self.data[6:]
+		length = ord(data[1]) ^ 128
+		if length == 126:
+			offset = 4
+		elif length == 127:
+			offset = 6
+		else:
+			offset = 2			
+		mask = data[offset:offset+4]
+		payload = data[offset+4:]
 		frame = ''.join(unichr(ord(a) ^ ord(mask[i % 4])) for i, a in enumerate(payload))
 		try:
 			event = json.loads(frame.decode('utf-8'))
 		except:
 			return
 		if event['evt'] == 'message':
-			self.room.sendToRoom(self, event['value'])
+			self.room.sendToRoom(self, event['value'][:255])
 		elif event['evt'] == 'set-nick':
-			self.room.set_nick(self, event['value'][0:24])
+			self.room.set_nick(self, event['value'][:24].strip())
 		elif event['evt'] == 'get-viewers':
-			self.send(json.dumps({'viewers': [client.name for client in self.room.clients]}).encode('utf-8'))
-
+			self.send(json.dumps({'evt': 'viewers', 'value': [client.name for client in self.room.clients]}).encode('utf-8'))
+		elif event['evt'] == 'set-color':
+			self.set_color(event['value'])
+			
 	def handshake(self):
-		data = self._sock.recv(1024).strip()
+		data = self.read()
+		if not data: 
+			return
 		lines = data.splitlines()
 		for line in lines:
 			if 'GET' in line:
@@ -59,9 +70,16 @@ class ChatClient(object):
 		return True
 		
 	def send(self, payload):
-		response = chr(0x81)+chr(len(payload))+payload
+		length = len(payload)
+		if length <= 125:
+			response = [0x81, len(payload)] + map(ord, payload)
+		elif length <= 65535:
+			response = [0x81, 126] + [len(payload) >> i & 0xff for i in [8,0]] + map(ord, payload)
+		else:
+			response = [0x81, 127] + [len(payload) >> i & 0xff for i in [24,16,8,0]] + map(ord, payload)
+	
 		try:
-			self._sock.send(response)
+			self._sock.send(bytearray(response))
 		except socket.error, why:
 			if why.args[0] == EWOULDBLOCK:
 				self.buffer += "\n" + response
@@ -86,11 +104,22 @@ class ChatClient(object):
 				return
 		self.buffer = lines[1:]
 	
+	def read(self):
+		try:
+			data = self._sock.recv(1024).strip()
+		except socket.error, why:
+			if why.args[0] in _DISCONNECTED:
+				self.kill()
+				return None
+		if not data: 
+			self.kill()
+			return None
+		return data
+	
 	def fileno(self):
 		return self._sock.fileno()
 		
 	def kill(self):
-		self._sock.shutdown()
 		self._sock.close()
 		try:
 			self.room.clients.remove(self)

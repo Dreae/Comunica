@@ -111,7 +111,6 @@ $(function(){
 				$('#comunica-save-nick').click();
 			}
 		});
-		$('#comunica-not-connected-popup').show();
 		this.comunica.nick = false;
 	}
 	$.fn.comunica.connect = function(host, room){
@@ -168,6 +167,7 @@ $(function(){
 		}
 	}
 	$.fn.comunica.inputFocus = function(event){
+		$(this).comunica.fadeDrops();
 		if(!$(this).comunica.nick){
 			event.preventDefault();
 			$('#comunica-pick-nickname-popup').show();
@@ -190,6 +190,7 @@ $(function(){
 	$.fn.comunica.connection_closed = function(){
 		console.log("WebSocket closed");
 		$('#comunica-not-connected-popup').show();
+		$.fn.comunica.fadeDrops();
 	}
 	$.fn.comunica.connected = function(){
 		console.log("WebSocket opened");
@@ -220,6 +221,16 @@ $(function(){
 	}
 	$.fn.comunica.setColor = function(){
 		var color = $(this).css('background-color');
+		$('#comunica-settings-drop > .colors > .active').removeClass('active');
 		$(this).comunica.send(JSON.stringify({evt: 'set-color', value: color}));
+		$(this).addClass('active');
+	}
+	$.fn.comunica.fadeDrops = function(){
+		if($('#comunica-viewers-drop').is(':visible')){
+			$('#comunica-viewers-drop').fadeOut();
+		}
+		if($('#comunica-settings-drop').is(':visible')){
+			$('#comunica-settings-drop').fadeOut();
+		}
 	}
 }(jQuery));

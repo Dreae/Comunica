@@ -13,7 +13,7 @@ class ChatClient(object):
 	def set_color(self, color):
 		if not 'rgb' in color:
 			return False
-		if re.findall(r'[^0-5\(\),rgb ]', color):
+		if re.findall(r'[^0-9\(\),rgb ]', color):
 			return False
 		self.name_color = color
 		

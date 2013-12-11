@@ -130,9 +130,14 @@
 .comunica .comunica-drop-menu .colors .color
 {
 	display: inline-block;
-	height: 16px;
-	width: 16px;
+	height: 20px;
+	width: 20px;
 	margin: 4px;
+	cursor: pointer;
+}
+.comunica .comunica-drop-menu .colors .active
+{
+	outline: #fc0 solid;
 }
 .comunica .comunica-controls
 {

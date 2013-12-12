@@ -1,0 +1,19 @@
+<comunica>
+	<server>
+		<name>Comunica</name>
+		<network>
+			<bind>0.0.0.0</bind>
+			<port>8080</port>
+		</network>
+	</server>
+	<database>
+		<connection>mysql+pymsql://user:pass@localhost:3306/comunica</connection>
+	</database>
+	<auth>
+		<supported>True</supported>
+		<provider>comunica.auth.AuthProvider</provider>
+		<connection>mysql+pymysql://user:pass@localhost:3306/user_database</connection>
+		<passwordSQL>SELECT password FROM users WHERE user=:username</passwordSQL>
+		<passwordHash>pbkdf2_sha512</passwordHash>
+	</auth>
+</comunica>

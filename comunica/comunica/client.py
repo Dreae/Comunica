@@ -9,6 +9,7 @@ class ChatClient(object):
 		self.name = None
 		self.name_color = '#000'
 		self.buffer = []
+		self.queue = []
 	
 	def set_color(self, color):
 		if not 'rgb' in color:
@@ -66,13 +67,8 @@ class ChatClient(object):
 			self.send(json.dumps({'evt': 'viewers', 'value': [client.name for client in self.room.clients]}).encode('utf-8'), 0x81)
 		elif event['evt'] == 'set-color':
 			self.set_color(event['value'])
-		elif event['evt'] == 'authenticate':
-			if self.room.server.registry.auth_provider.authenticate(event['username'], event['password']): #TODO: run queries on new thread,
-				self.room.authed_set_nick(self, event['username'])                                         #slow database blocks whole reactor
-				self.send(json.dumps({'evt': 'auth-result', 'success': True, 'nick': event['username']}).encode('utf-8'), 0x81)
-			else:
-				self.room.set_nick(event['username'])
-				self.send(json.dumps({'evt': 'auth-result', 'success': False, 'nick': self.name}).encode('utf-8'), 0x81)
+		elif event['evt'] == 'authenticate' and self.room.server.registry.supports_auth:
+			self.room.server.registry.auth_provider.req_auth(self, event['username'], event['password'])
 			
 	def handshake(self):
 		data = self.read()
@@ -124,6 +120,21 @@ class ChatClient(object):
 	
 	def write(self):
 		self.send(self.buffer.pop(0), 0x81)
+	
+	def has_cmds_waiting(self):
+		if self.queue:
+			return True
+		return False
+	
+	def proc_queue(self):
+		cmd = self.queue.pop(0)
+		if cmd['event'] == 'auth-result':
+			if cmd['success']:
+				self.room.authed_set_nick(self, cmd['nick'])                                         
+				self.send(json.dumps({'evt': 'auth-result', 'success': True, 'nick': cmd['nick']}).encode('utf-8'), 0x81)
+			else:
+				self.room.set_nick(cmd['nick'])
+				self.send(json.dumps({'evt': 'auth-result', 'success': False, 'nick': self.name}).encode('utf-8'), 0x81)
 	
 	def read(self):
 		data = ''

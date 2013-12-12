@@ -1,16 +1,19 @@
 import socket, threading, select, time, json, random
 from .client import ChatClient
+from .ORM import ComunicaRoom, Base
 from . import lock
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 class ChatServer(object):
 	def __init__(self, registry):
 		self._socket = socket.socket()
 		self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		
 		self.registry = registry
-		
 		self._shutdown_req = False
 		self.reactors = [Reactor() for x in range(4)]
+		self.database = DatabaseConnection(self.registry)
+		self.database.load_rooms(self)
 	
 	def serve(self):
 		self._socket.bind((self.registry.bind, self.registry.port))
@@ -70,6 +73,8 @@ class Room(object):
 			for client in w:
 				if client.waiting_to_write():
 					client.write()
+				if client.has_cmds_waiting():
+					client.proc_queue()
 			
 	def sendToRoom(self, client, msg):
 		if not client.name:
@@ -89,6 +94,9 @@ class Room(object):
 			nick += '_'
 			if len(nick) > 24:
 				nick = nick[1:25]
+			if nick == ''.join('_' for x in range(24)):
+				self.set_nick(client, ''.join(random.choice('abcdefghijklmnop0123456789') for x in range(24)))
+				return
 		client.name = nick
 		
 	def authed_set_nick(self, client, nick):
@@ -120,3 +128,13 @@ class Reactor(object):
 				
 	def shutdown(self):
 		self._shutdown_req = True
+		
+class DatabaseConnection(object):
+	def __init__(self, registry):
+		self.engine = create_engine(registry.database)
+		self.Session = sessionmaker(bind=self.engine)()
+		Base.metadata.create_all(self.engine)
+	
+	def load_rooms(self, server):
+		for room in self.Session.query(ComunicaRoom).all():
+			sever.add_room(room.name)

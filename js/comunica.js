@@ -125,6 +125,7 @@ $(function(){
 		});
 		$('body > div:not(#comunica, #comunica-viewers-drop, #comunica-settings-drop)').click($.fn.comunica.fadeDrops);
 		this.comunica.nick = false;
+		this.comunica.supports_auth = false;
 	}
 	$.fn.comunica.connect = function(host, room){
 		this.host = host

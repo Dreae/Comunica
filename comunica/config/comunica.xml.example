@@ -7,7 +7,7 @@
 		</network>
 	</server>
 	<database>
-		<connection>mysql+pymsql://user:pass@localhost:3306/comunica</connection>
+		<connection>mysql+pymysql://user:pass@localhost:3306/comunica</connection>
 	</database>
 	<auth>
 		<supported>True</supported>

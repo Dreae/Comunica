@@ -3,16 +3,17 @@ from .client import ChatClient
 from . import lock
 
 class ChatServer(object):
-	def __init__(self, port=8080, bind=''):
+	def __init__(self, registry):
 		self._socket = socket.socket()
 		self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.bind = bind
-		self.port = port
+		
+		self.registry = registry
+		
 		self._shutdown_req = False
 		self.reactors = [Reactor() for x in range(4)]
 	
 	def serve(self):
-		self._socket.bind((self.bind, self.port))
+		self._socket.bind((self.registry.bind, self.registry.port))
 		self._socket.listen(3)
 		while not self._shutdown_req:
 			r, w, e = select.select([self._socket], [], [], 0.5)
@@ -26,10 +27,13 @@ class ChatServer(object):
 				if client.handshake():
 					room = self.get_room(client.room)
 					if room:
+						client.buffer.append(self.settings())
 						room.clients.append(client)
 						client.room = room
 					else:
 						client._sock.close()
+				else:
+					client._sock.close()
 						
 	def get_room(self, room):
 		for reactor in self.reactors:
@@ -42,13 +46,17 @@ class ChatServer(object):
 		return None
 		
 	def add_room(self, new_room):
-		room = Room(new_room)
+		room = Room(self, new_room)
 		random.choice(self.reactors).rooms.append(room)
 		
+	def settings(self):
+		return json.dumps({'evt': 'server-info', 'name': self.registry.server, 'supports_auth': self.registry.supports_auth, 
+							'host': self.registry.bind, 'port': self.registry.port}).encode('utf-8')
 		
 class Room(object):
-	def __init__(self, name):
+	def __init__(self, server, name):
 		self.name = name
+		self.server = server
 		self.clients = []
 	
 	def serve(self):
@@ -75,12 +83,20 @@ class Room(object):
 			client.send(payload, 0x81)
 	
 	def set_nick(self, client, nick):
+		if len(nick) < 1:
+			return
 		while nick in [c.name for c in self.clients if c != client]:
 			nick += '_'
 			if len(nick) > 24:
 				nick = nick[1:25]
 		client.name = nick
 		
+	def authed_set_nick(self, client, nick):
+		client.name = nick
+		for client in self.clients:
+			if client.name == nick:
+				self.set_nick(client, nick)
+	
 	def shutdown(self):
 		for client in self.clients:
 			client.kill()

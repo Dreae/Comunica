@@ -8,7 +8,7 @@ class ChatClient(object):
 		self._addr = addr
 		self.name = None
 		self.name_color = '#000'
-		self.buffer = ''
+		self.buffer = []
 	
 	def set_color(self, color):
 		if not 'rgb' in color:
@@ -21,19 +21,28 @@ class ChatClient(object):
 		data = self.read()
 		if not data: 
 			return
-		opcode = ord(data[0])
-		masked = ord(data[1]) & 128 == 128
-		length = ord(data[1]) ^ 128
 		
-		if length == 126:
+		fin    = ord(data[0]) & 0x80 == 0x80
+		rsv1   = ord(data[0]) & 0x40 == 0x40
+		rsv2   = ord(data[0]) & 0x20 == 0x20
+		rsv3   = ord(data[0]) & 0x10 == 0x10
+		opcode = ord(data[0]) & 0xf
+		masked = ord(data[1]) & 0x80 == 0x80
+		paylen = ord(data[1]) & 0x7f
+		
+		if rsv1 or rsv2 or rsv3:
+			self.kill()
+		
+		if paylen == 126:
 			offset = 4
-		elif length == 127:
+		elif paylen == 127:
 			offset = 6
 		else:
 			offset = 2
 		
 		if masked:
 			mask = data[offset:offset+4]
+		
 		payload = data[offset+4 if masked else 0:]
 		
 		if masked:
@@ -41,7 +50,7 @@ class ChatClient(object):
 		else:
 			frame = payload
 	
-		if opcode == 0x89:
+		if opcode == 0x09:
 			self.send(frame, 0x8A)
 			return
 		
@@ -57,6 +66,13 @@ class ChatClient(object):
 			self.send(json.dumps({'evt': 'viewers', 'value': [client.name for client in self.room.clients]}).encode('utf-8'), 0x81)
 		elif event['evt'] == 'set-color':
 			self.set_color(event['value'])
+		elif event['evt'] == 'authenticate':
+			if self.room.server.registry.auth_provider.authenticate(event['username'], event['password']): #TODO: run queries on new thread,
+				self.room.authed_set_nick(self, event['username'])                                         #slow database blocks whole reactor
+				self.send(json.dumps({'evt': 'auth-result', 'success': True, 'nick': event['username']}).encode('utf-8'), 0x81)
+			else:
+				self.room.set_nick(event['username'])
+				self.send(json.dumps({'evt': 'auth-result', 'success': False, 'nick': self.name}).encode('utf-8'), 0x81)
 			
 	def handshake(self):
 		data = self.read()
@@ -69,6 +85,7 @@ class ChatClient(object):
 			elif 'Sec-WebSocket-Key' in line:
 				self.key = line.split(': ', 1)[1]
 				self.accept = base64.b64encode(hashlib.sha1(self.key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'.encode('utf-8')).digest()).encode('utf-8')
+
 		if not hasattr(self, 'accept') or not hasattr(self, 'room'):
 			return False
 		response = 'HTTP/1.1 101 WebSocket Protocol Handshake\r\n'
@@ -78,9 +95,7 @@ class ChatClient(object):
 		response += 'Sec-WebSocket-Accept: {}\r\n\r\n'.format(self.accept)
 		try:
 			self._sock.send(response.encode('utf-8'))
-		except socket.error, why:
-			if why.args[0] in _DISCONNECTED:
-				self.kill()
+		except socket.error:
 			return False
 		return True
 	
@@ -97,7 +112,7 @@ class ChatClient(object):
 			self._sock.send(bytearray(response))
 		except socket.error, why:
 			if why.args[0] == EWOULDBLOCK:
-				self.buffer += "\n" + response
+				self.buffer.append(response)
 				return
 			elif why.args[0] in _DISCONNECTED:
 				self.kill()
@@ -108,18 +123,10 @@ class ChatClient(object):
 		return False
 	
 	def write(self):
-		lines = self.buffer.split('\n')
-		try:
-			self._sock.send(lines[0])
-		except socket.error, why:
-			if why.args[0] == EWOULDBLOCK:
-				return
-			elif why.args[0] in _DISCONNECTED:
-				self.kill()
-				return
-		self.buffer = lines[1:]
+		self.send(self.buffer.pop(0), 0x81)
 	
 	def read(self):
+		data = ''
 		try:
 			data = self._sock.recv(1024).strip()
 		except socket.error, why:

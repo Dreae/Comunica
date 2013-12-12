@@ -1,4 +1,3 @@
 import threading
 lock = threading.Lock()
-
-from . import client, server
+__version__ = '1.0.0+dev0028'

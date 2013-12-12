@@ -57,10 +57,8 @@ $(function(){
 				)
 			)
 			.append($('<div class="comunica-drop-menu" id="comunica-settings-drop"></div>')
-				.append($('<h2>Settings</h2>'))
-				.append($('<br>'))
-				.append($('<h4>Colors</h4>'))
 				.append($('<div class="colors"></div>')
+					.append($('<br>'))
 					.append($('<a class="color" style="background-color:#ff0000"></a>').click($.fn.comunica.setColor))
 					.append($('<a class="color" style="background-color:#008000"></a>').click($.fn.comunica.setColor))
 					.append($('<a class="color" style="background-color:#b22222"></a>').click($.fn.comunica.setColor))
@@ -79,6 +77,18 @@ $(function(){
 					.append($('<a class="color" style="background-color:#ff69b4"></a>').click($.fn.comunica.setColor))
 					.append($('<a class="color" style="background-color:#8a2be2"></a>').click($.fn.comunica.setColor))
 					.append($('<a class="color" style="background-color:#00ff7f"></a>').click($.fn.comunica.setColor))
+					.append($('<br>'))
+					.append($('<p></p>')
+						.append($('<input type="checkbox" id="comunica-timestamp-check">')
+							.change(function(){
+								$(this).comunica.timestamps = this.checked
+							})
+						)
+						.append($('<span style="font-weight:300">Timestamps</span>'))
+						.append($('<div class="about-comunica"></div>')
+							.append($('<span class="about"><a href="https://github.com/Dreae/Comunica" target="_blank">Comunica</a></span>'))
+						)
+					)
 				)
 			)
 			.append($('<div class="comunica-drop-menu" id="comunica-viewers-drop"></div>')
@@ -89,15 +99,17 @@ $(function(){
 				.append($('<div class="comunica-pick-nick"></div>')
 					.append($('<center></center>')
 						.append($('<h3>Pick a name</h3>'))
-						.append($('<input type="text" id="comunica-pick-nickname-input">')
-							
-						)
+						.append($('<input type="text" id="comunica-pick-nickname-input">'))
 						.append($('<br><button id="comunica-save-nick">Save</button>')
 							.click($.fn.comunica.saveNickClick)
 						)
 					)
 				)
-			)
+			).on('shown', function(){
+				$('#comunica-pick-nickname-popup > .comunica-pick-nick').css({
+					'margin-top': -$('#comunica-pick-nickname-popup > .comunica-pick-nick').height()/2
+				});
+			})
 			.append($('<div class="comunica-opaque-popup" id="comunica-not-connected-popup"></div>')
 				.append($('<div class="comunica-not-connected"></div>')
 					.append($('<h2>Could not connect to chat room</h2>'))
@@ -111,6 +123,7 @@ $(function(){
 				$('#comunica-save-nick').click();
 			}
 		});
+		$('body > div:not(#comunica, #comunica-viewers-drop, #comunica-settings-drop)').click($.fn.comunica.fadeDrops);
 		this.comunica.nick = false;
 	}
 	$.fn.comunica.connect = function(host, room){
@@ -150,7 +163,14 @@ $(function(){
 			return;
 		}
 		if(json.evt == "message"){
-			$('#comunica-chat-pane').append('<p style="margin:0;"><span style="color:'+ json.from[1].htmlEncode()
+			var timestamp = '';
+			if($.fn.comunica.timestamps){
+				var dt = new Date();
+				var timestamp = (dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()) + ':'
+								+ (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes());
+			}
+			$('#comunica-chat-pane').append('<p style="margin:0;">' + timestamp
+									+ ' <span style="color:'+ json.from[1].htmlEncode()
 									+ ';font-weight:600">' + json.from[0].htmlEncode() + '</span>: ' + json.value.htmlEncode() + '</p>');
 			$('#comunica-chat-pane').animate({scrollTop: $('#comunica-chat-pane')[0].scrollHeight}, 300);
 			if($('#comunica-chat-pane > p').length > 150){
@@ -166,6 +186,37 @@ $(function(){
 			});
 			$('#comunica-viewers-drop > #comunica-viewers-list').replaceWith(viewerList)
 		}
+		else if(json.evt == "server-info"){
+			if(json.supports_auth){
+				$('#comunica-settings-drop')
+				.append($('<div name="comunica-login-form"></div>')
+					.append($('<h3>Login</h3>'))
+					.append($('<p class="comunica-login-form"></p>')
+						.append($('<input name="comunica-login-username" placeholder="Username" type="text"/>'))
+						.append($('<input name="comunica-login-password" placeholder="Password" type="password"/>'))
+					)
+				)
+				$('#comunica-pick-nickname-popup > .comunica-pick-nick > center > #comunica-save-nick').remove()
+				$('#comunica-pick-nickname-popup > .comunica-pick-nick > center')
+				.append($('<div name="comunica-login-form"></div>')
+					.append($('<p> - or - </p>'))
+					.append($('<p>Login</p>'))
+					.append($('<input name="comunica-login-username" placeholder="Username" type="text"/>'))
+					.append($('<input name="comunica-login-password" placeholder="Password" type="password"/>'))
+					.append($('<br><button id="comunica-save-nick">Save</button>')
+						.click($.fn.comunica.saveNickClick)
+					)
+				)
+				$.fn.comunica.supports_auth = true
+			}
+		}
+		else if(json.evt == "auth-result"){
+			$.fn.comunica.authed = json.success
+			$.fn.comunica.nick = json.nick
+			if(json.success){
+				$('div[name="comunica-login-form"]').each(function(){$(this).remove();});
+			}
+		}
 	}
 	$.fn.comunica.inputKeyDown = function(event){
 		if(event.which == 13){
@@ -177,14 +228,14 @@ $(function(){
 		$(this).comunica.fadeDrops();
 		if(!$(this).comunica.nick){
 			event.preventDefault();
-			$('#comunica-pick-nickname-popup').show();
+			$('#comunica-pick-nickname-popup').show(0, function(){$(this).trigger('shown');});
 			$('#comunica-pick-nickname-input').focus();
 			return;
 		}
 	}
 	$.fn.comunica.sendClick = function(event){
 		if(!$(this).comunica.nick){
-			$('#comunica-pick-nickname-popup').show();
+			$('#comunica-pick-nickname-popup').show(0, function(){$(this).trigger('shown');});
 			return;
 		}
 		event.preventDefault();
@@ -217,6 +268,21 @@ $(function(){
 		$('#comunica-viewers-drop').fadeToggle().offset({top: btnoff.top-340, left: btnoff.left-100});
 	}
 	$.fn.comunica.saveNickClick = function(){
+		if($(this).comunica.supports_auth)
+		{
+			var nick = $('#comunica-pick-nickname-popup > .comunica-pick-nick > center > div > input[name="comunica-login-username"]').val();
+			console.log(nick);
+			if(nick)
+			{
+				var pass = $('#comunica-pick-nickname-popup > .comunica-pick-nick > center > div > input[name="comunica-login-password"]').val();
+				$(this).comunica.send(JSON.stringify({evt: 'authenticate', username: nick, password: pass}));
+				$('#comunica-pick-nickname-popup').hide();
+				return;
+			}
+		}
+		$(this).comunica.pickNick();
+	}
+	$.fn.comunica.pickNick = function(){
 		var nick = $('#comunica-pick-nickname-input').val();
 		if(!nick){
 			alert("Nickname can not be empty");

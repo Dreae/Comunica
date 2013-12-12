@@ -10,6 +10,39 @@
 	border-radius: 3px;
 	position: relative;
 }
+.comunica button
+{
+	background-color: #fff;
+	border: 1px solid #e0e0e0;
+	padding: 9px 12px;
+	margin: 6px;
+	background: -webkit-gradient(linear, left top, left bottom, from(#f0f0f0), to(#e0e0e0));
+	background: -webkit-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -moz-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -ms-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background: -o-linear-gradient(top, #f0f0f0, #e0e0e0);
+	background-image: -ms-linear-gradient(top, #f0f0f0 0%, #e0e0e0 100%);
+	box-shadow: 0 0 4px rgba(0,0,0,0.2);
+	outline: none;
+}
+.comunica input[type="text"], input[type="password"]
+{
+	resize:none;
+	border: 1px solid #cccccc;
+	border-radius: 4px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	-webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+			transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+	margin-bottom: 8px;
+}
+.comunica input[type="text"]:focus, input[type="password"]:focus
+{
+	border-color: #66afe9;
+	outline: 0;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
 .comunica #comunica-chat-pane
 {
 	background-color:#fff;
@@ -37,44 +70,11 @@
 	border-radius: 4px;
 	box-shadow: 0 0 4px rgba(255,255,255,0.3);
 	border: 1px solid #e0e0e0;
-	margin-top: 45%;
+	top: 50%;
 }
 .comunica .comunica-opaque-popup .comunica-pick-nick h3
 {
 	margin: 4px;
-}
-.comunica .comunica-opaque-popup .comunica-pick-nick input[type="text"]
-{
-	resize:none;
-	border: 1px solid #cccccc;
-	border-radius: 4px;
-	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-	-webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-			transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-	margin-bottom: 8px;
-}
-.comunica .comunica-opaque-popup .comunica-pick-nick input[type="text"]:focus
-{
-	border-color: #66afe9;
-	outline: 0;
-	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
-			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
-}
-.comunica .comunica-opaque-popup .comunica-pick-nick button
-{
-	background-color: #fff;
-	border: 1px solid #e0e0e0;
-	padding: 9px 12px;
-	margin: 6px;
-	background: -webkit-gradient(linear, left top, left bottom, from(#f0f0f0), to(#e0e0e0));
-	background: -webkit-linear-gradient(top, #f0f0f0, #e0e0e0);
-	background: -moz-linear-gradient(top, #f0f0f0, #e0e0e0);
-	background: -ms-linear-gradient(top, #f0f0f0, #e0e0e0);
-	background: -o-linear-gradient(top, #f0f0f0, #e0e0e0);
-	background-image: -ms-linear-gradient(top, #f0f0f0 0%, #e0e0e0 100%);
-	box-shadow: 0 0 4px rgba(0,0,0,0.2);
-	outline: none;
 }
 .comunica .comunica-opaque-popup .comunica-not-connected
 {
@@ -99,6 +99,32 @@
 {
 	margin: 6px;
 	margin-left: 12px;
+}
+.comunica .comunica-drop-menu .comunica-login-form
+{
+	margin: 6px;
+	margin-left: 12px;
+}
+.comunica .comunica-drop-menu .about-comunica
+{
+	width: 100%;
+	height: 28px;
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+}
+.comunica .comunica-drop-menu .about-comunica .about a
+{
+	text-decoration: none;
+	color: rgba(255,255,255,0.4);
+}
+.comunica .comunica-drop-menu .about-comunica .about a:hover
+{
+	text-decoration: none;
+	color: rgba(255,255,255,1);
 }
 .comunica .comunica-drop-menu .loading
 {

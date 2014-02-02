@@ -69,6 +69,11 @@ class ChatClient(object):
 			self.set_color(event['value'])
 		elif event['evt'] == 'authenticate' and self.room.server.registry.supports_auth:
 			self.room.server.registry.auth_provider.req_auth(self, event['username'], event['password'])
+		elif event['evt'] == 'session-auth' and self.room.server.registry.supports_auth:
+			self.auth_session = self.room.server.get_session(event['csid'], event['psid'], event['token'])
+			if self.auth_session:
+				self.room.authed_set_nick(self, self.auth_session.nick)
+				self.send(json.dumps({'evt': 'auth-result', 'success': True, 'nick': self.auth_session.nick}).encode('utf-8'), 0x81)
 			
 	def handshake(self):
 		data = self.read()
@@ -130,7 +135,7 @@ class ChatClient(object):
 		cmd = self.queue.pop(0)
 		if cmd['event'] == 'auth-result':
 			if cmd['success']:
-				self.room.authed_set_nick(self, cmd['nick'])                                         
+				self.room.authed_set_nick(self, cmd['nick'])
 				self.send(json.dumps({'evt': 'auth-result', 'success': True, 'nick': cmd['nick']}).encode('utf-8'), 0x81)
 			else:
 				self.room.set_nick(cmd['nick'])
@@ -158,3 +163,4 @@ class ChatClient(object):
 			self.room.clients.remove(self)
 		except:
 			return
+			

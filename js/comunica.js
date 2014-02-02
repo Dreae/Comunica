@@ -146,7 +146,7 @@ $(function(){
 		}
 	}
 	$.fn.comunica.websock_error = function(error){
-		console.log(error.error);
+		console.log(error);
 	}
 	$.fn.comunica.send = function(msg){
 		try {
@@ -247,7 +247,6 @@ $(function(){
 		input.val('');
 	}
 	$.fn.comunica.connection_closed = function(){
-		console.log("WebSocket closed");
 		$('#comunica-not-connected-popup').show();
 		$.fn.comunica.fadeDrops();
 	}
